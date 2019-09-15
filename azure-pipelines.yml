@@ -18,13 +18,8 @@ steps:
 - task: DotNetCoreInstaller@1
   inputs:
     version: '3.0.100-preview9-014004'
-    
+
 - task: DotNetCoreCLI@2
   inputs:
-    command: 'restore'
-    projects: '**/*.csproj'
-    
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
+    command: 'test'
     projects: '**/*.csproj'
