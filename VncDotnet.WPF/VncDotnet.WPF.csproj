@@ -5,14 +5,19 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
+    <Authors>Benedikt Radtke</Authors>
+    <PackageProjectUrl>https://github.com/Trolldemorted/VncDotnet.WPF</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Trolldemorted/VncDotnet.WPF</RepositoryUrl>
+    <PackageTags>vnc rfb wpf</PackageTags>
+    <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="VncDotnet" Version="1.0.2" />
     <PackageReference Include="WriteableBitmapEx" Version="1.6.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\VncDotnet\VncDotnet.csproj" />
   </ItemGroup>
 
 </Project>
