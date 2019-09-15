@@ -27,13 +27,20 @@ namespace Demo.WPF
         {
             InitializeComponent();
             this.Loaded += MainWindow_Loaded;
+            this.Closing += MainWindow_Closing;
         }
 
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            CancelSource.Cancel();
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             //await MyVncElement.ConnectAsync("10.128.1.104", 5900, "asdf", RfbConnection.SupportedSecurityTypes);
-            await MyVncElement.ConnectAsync("10.128.1.104", 5900, "asdf", RfbConnection.SupportedSecurityTypes, new MonitorSnippet(920, 0, 1920, 540), CancelSource.Token);
-            //await MyVncElement.ConnectAsync("192.168.178.20", 5900, "asdf", RfbConnection.SupportedSecurityTypes);
+            //await MyVncElement.Start("10.128.1.104", 5900, "asdf", RfbConnection.SupportedSecurityTypes, new MonitorSnippet(920, 0, 1920, 540), CancelSource.Token);
+            //MyVncElement.Start("192.168.178.20", 5900, "asdf", RfbConnection.SupportedSecurityTypes, CancelSource.Token);
+            MyVncElement.Start("192.168.178.22", 5900, "asdf", new SecurityType[] { SecurityType.VncAuthentication }, CancelSource.Token);
         }
     }
 }

@@ -34,28 +34,45 @@ namespace VncDotnet.WPF
         private int FramebufferWidth;
         private int FramebufferHeight;
 
-        public Task ConnectAsync(string host, int port, string password, CancellationToken token)
+        public void Start(string host, int port, string password, CancellationToken token)
         {
-            return ConnectAsync(host, port, password, RfbConnection.SupportedSecurityTypes, token);
+            Start(host, port, password, RfbConnection.SupportedSecurityTypes, token);
         }
 
-        public Task ConnectAsync(string host, int port, string password, MonitorSnippet? section, CancellationToken token)
+        public void Start(string host, int port, string password, MonitorSnippet? section, CancellationToken token)
         {
-            return ConnectAsync(host, port, password, RfbConnection.SupportedSecurityTypes, section, token);
+            Start(host, port, password, RfbConnection.SupportedSecurityTypes, section, token);
         }
 
-        public Task ConnectAsync(string host, int port, string password, IEnumerable<SecurityType> securityTypes, CancellationToken token)
+        public void Start(string host, int port, string password, IEnumerable<SecurityType> securityTypes, CancellationToken token)
         {
-            return ConnectAsync(host, port, password, securityTypes, null, token);
+            Start(host, port, password, securityTypes, null, token);
         }
 
-        public async Task<Task> ConnectAsync(string host, int port, string password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
+        public void Start(string host, int port, string password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
         {
-            Client = await RfbConnection.ConnectAsync(host, port, password, securityTypes, section, token);
-            Section = section;
-            Client.OnVncUpdate += Client_OnVncUpdate;
-            Client.OnResolutionUpdate += Client_OnResolutionUpdate;
-            return Client.Start();
+            Task.Run(() => ReconnectLoop(host, port, password, securityTypes, section, token));
+        }
+
+        private async Task ReconnectLoop(string host, int port, string password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    Client = await RfbConnection.ConnectAsync(host, port, password, securityTypes, section, token);
+                    Section = section;
+                    Client.OnVncUpdate += Client_OnVncUpdate;
+                    Client.OnResolutionUpdate += Client_OnResolutionUpdate;
+                    await Client.Start();
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception e)
+                {
+                    Debug.WriteLine($"ReconnectLoop caught {e.Message}\n{e.StackTrace}");
+                }
+                await Task.Delay(1000);
+            }
         }
 
         private void Client_OnResolutionUpdate(int framebufferWidth, int framebufferHeight)
