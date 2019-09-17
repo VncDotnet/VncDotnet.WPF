@@ -12,11 +12,11 @@
     <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="VncDotnet" Version="1.0.4" />
+    <PackageReference Include="VncDotnet" Version="1.0.5" />
     <PackageReference Include="WriteableBitmapEx" Version="1.6.2" />
   </ItemGroup>
 
