@@ -21,7 +21,7 @@ using VncDotnet.Messages;
 
 namespace VncDotnet.WPF
 {
-    public class VncDotnet : Control, IDisposable
+    public class VncDotnet : Control
     {
         static VncDotnet()
         {
@@ -29,7 +29,8 @@ namespace VncDotnet.WPF
         }
 
         private WriteableBitmap? Bitmap;
-        private RfbConnection? Client = null;
+        private RfbConnection? Connection = null;
+        private RfbConnection? PreEstablishedConnection = null;
         private MonitorSnippet? Section = null;
         private int FramebufferWidth;
         private int FramebufferHeight;
@@ -54,17 +55,24 @@ namespace VncDotnet.WPF
             Task.Run(() => ReconnectLoop(host, port, password, securityTypes, section, token));
         }
 
+        public void Start(RfbConnection preEstablishedConnection)
+        {
+            PreEstablishedConnection = preEstablishedConnection;
+            PreEstablishedConnection.OnVncUpdate += Client_OnVncUpdate;
+            PreEstablishedConnection.OnResolutionUpdate += Client_OnResolutionUpdate;
+        }
+
         private async Task ReconnectLoop(string host, int port, string password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
                 try
                 {
-                    Client = await RfbConnection.ConnectAsync(host, port, password, securityTypes, section, token);
+                    Connection = await RfbConnection.ConnectAsync(host, port, password, securityTypes, section, token);
                     Section = section;
-                    Client.OnVncUpdate += Client_OnVncUpdate;
-                    Client.OnResolutionUpdate += Client_OnResolutionUpdate;
-                    await Client.Start();
+                    Connection.OnVncUpdate += Client_OnVncUpdate;
+                    Connection.OnResolutionUpdate += Client_OnResolutionUpdate;
+                    await Connection.Start();
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception e)
@@ -180,9 +188,20 @@ namespace VncDotnet.WPF
             return 0;
         }
 
-        public void Dispose()
+        public void Stop()
         {
-            Client?.Stop();
+            if (Connection != null)
+            {
+                Connection.OnResolutionUpdate -= Client_OnResolutionUpdate;
+                Connection.OnVncUpdate -= Client_OnVncUpdate;
+                Connection.Stop();
+            }
+
+            if (PreEstablishedConnection != null)
+            {
+                PreEstablishedConnection.OnResolutionUpdate -= Client_OnResolutionUpdate;
+                PreEstablishedConnection.OnVncUpdate -= Client_OnVncUpdate;
+            }
         }
     }
 }
