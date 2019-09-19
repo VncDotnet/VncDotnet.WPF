@@ -21,11 +21,11 @@ using VncDotnet.Messages;
 
 namespace VncDotnet.WPF
 {
-    public class VncDotnet : Control
+    public class VncDotnetControl : Control
     {
-        static VncDotnet()
+        static VncDotnetControl()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(VncDotnet), new FrameworkPropertyMetadata(typeof(VncDotnet)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(VncDotnetControl), new FrameworkPropertyMetadata(typeof(VncDotnetControl)));
         }
 
         private WriteableBitmap? Bitmap;
