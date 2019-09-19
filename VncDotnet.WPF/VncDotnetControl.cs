@@ -28,29 +28,30 @@ namespace VncDotnet.WPF
             DefaultStyleKeyProperty.OverrideMetadata(typeof(VncDotnetControl), new FrameworkPropertyMetadata(typeof(VncDotnetControl)));
         }
 
+        public RfbConnection? Connection { get; internal set; }
+        public RfbConnection? PreEstablishedConnection { get; internal set; }
+
         private WriteableBitmap? Bitmap;
-        private RfbConnection? Connection = null;
-        private RfbConnection? PreEstablishedConnection = null;
         private MonitorSnippet? Section = null;
         private int FramebufferWidth;
         private int FramebufferHeight;
 
-        public void Start(string host, int port, string password, CancellationToken token)
+        public void Start(string host, int port, string? password, CancellationToken token)
         {
             Start(host, port, password, RfbConnection.SupportedSecurityTypes, token);
         }
 
-        public void Start(string host, int port, string password, MonitorSnippet? section, CancellationToken token)
+        public void Start(string host, int port, string? password, MonitorSnippet? section, CancellationToken token)
         {
             Start(host, port, password, RfbConnection.SupportedSecurityTypes, section, token);
         }
 
-        public void Start(string host, int port, string password, IEnumerable<SecurityType> securityTypes, CancellationToken token)
+        public void Start(string host, int port, string? password, IEnumerable<SecurityType> securityTypes, CancellationToken token)
         {
             Start(host, port, password, securityTypes, null, token);
         }
 
-        public void Start(string host, int port, string password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
+        public void Start(string host, int port, string? password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
         {
             Task.Run(() => ReconnectLoop(host, port, password, securityTypes, section, token));
         }
@@ -63,7 +64,7 @@ namespace VncDotnet.WPF
             PreEstablishedConnection.OnResolutionUpdate += Client_OnResolutionUpdate;
         }
 
-        private async Task ReconnectLoop(string host, int port, string password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
+        private async Task ReconnectLoop(string host, int port, string? password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
@@ -89,9 +90,18 @@ namespace VncDotnet.WPF
             Application.Current?.Dispatcher.Invoke(new Action(() =>
             {
                 var image = (Image) GetTemplateChild("Scene");
-                FramebufferWidth = framebufferWidth;
-                FramebufferHeight = framebufferHeight;
-                Bitmap = BitmapFactory.New(framebufferWidth, framebufferHeight);
+                if (Section != null)
+                {
+                    FramebufferWidth = Section.Width;
+                    FramebufferHeight = Section.Height;
+                    Bitmap = BitmapFactory.New(FramebufferWidth, FramebufferHeight);
+                }
+                else
+                {
+                    FramebufferWidth = framebufferWidth;
+                    FramebufferHeight = framebufferHeight;
+                    Bitmap = BitmapFactory.New(framebufferWidth, framebufferHeight);
+                }
                 image.Source = Bitmap;
             }));
         }
