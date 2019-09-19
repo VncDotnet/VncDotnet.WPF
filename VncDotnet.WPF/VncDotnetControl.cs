@@ -55,8 +55,9 @@ namespace VncDotnet.WPF
             Task.Run(() => ReconnectLoop(host, port, password, securityTypes, section, token));
         }
 
-        public void Start(RfbConnection preEstablishedConnection)
+        public void Start(RfbConnection preEstablishedConnection, MonitorSnippet? section)
         {
+            Section = section;
             PreEstablishedConnection = preEstablishedConnection;
             PreEstablishedConnection.OnVncUpdate += Client_OnVncUpdate;
             PreEstablishedConnection.OnResolutionUpdate += Client_OnResolutionUpdate;
