@@ -10,14 +10,17 @@
     <RepositoryUrl>https://github.com/Trolldemorted/VncDotnet.WPF</RepositoryUrl>
     <PackageTags>vnc rfb wpf</PackageTags>
     <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Version>1.0.7</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="VncDotnet" Version="1.0.6" />
+    <PackageReference Include="VncDotnet" Version="1.0.8" />
     <PackageReference Include="WriteableBitmapEx" Version="1.6.2" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19351-01" PrivateAssets="All"/>
   </ItemGroup>
 
 </Project>
