@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
     <Authors>Benedikt Radtke</Authors>
-    <PackageProjectUrl>https://github.com/Trolldemorted/VncDotnet.WPF</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Trolldemorted/VncDotnet.WPF</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/VncDotnet/VncDotnet.WPF</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/VncDotnet/VncDotnet.WPF</RepositoryUrl>
     <PackageTags>vnc rfb wpf</PackageTags>
     <PackageLicenseExpression>EUPL-1.2</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
