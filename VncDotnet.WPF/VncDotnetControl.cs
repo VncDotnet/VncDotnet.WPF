@@ -21,7 +21,7 @@ using VncDotnet.Messages;
 
 namespace VncDotnet.WPF
 {
-    public class VncDotnetControl : Control
+    public class VncDotnetControl : Control, IVncHandler
     {
         static VncDotnetControl()
         {
@@ -56,12 +56,11 @@ namespace VncDotnet.WPF
             Task.Run(() => ReconnectLoop(host, port, password, securityTypes, section, token));
         }
 
-        public void Start(RfbConnection preEstablishedConnection, MonitorSnippet? section)
+        public async Task Attach(RfbConnection preEstablishedConnection, MonitorSnippet? section)
         {
             Section = section;
             PreEstablishedConnection = preEstablishedConnection;
-            PreEstablishedConnection.OnVncUpdate += Client_OnVncUpdate;
-            PreEstablishedConnection.OnResolutionUpdate += Client_OnResolutionUpdate;
+            await PreEstablishedConnection.Attach(this);
         }
 
         private async Task ReconnectLoop(string host, int port, string? password, IEnumerable<SecurityType> securityTypes, MonitorSnippet? section, CancellationToken token)
@@ -72,8 +71,6 @@ namespace VncDotnet.WPF
                 {
                     Connection = await RfbConnection.ConnectAsync(host, port, password, securityTypes, section, token);
                     Section = section;
-                    Connection.OnVncUpdate += Client_OnVncUpdate;
-                    Connection.OnResolutionUpdate += Client_OnResolutionUpdate;
                     await Connection.Start();
                 }
                 catch (OperationCanceledException) { }
@@ -85,35 +82,45 @@ namespace VncDotnet.WPF
             }
         }
 
-        private void Client_OnResolutionUpdate(int framebufferWidth, int framebufferHeight)
+        private int BitmapX()
         {
-            Application.Current?.Dispatcher.Invoke(new Action(() =>
+            if (Section != null)
             {
-                var image = (Image) GetTemplateChild("Scene");
-                if (Section != null)
-                {
-                    FramebufferWidth = Section.Width;
-                    FramebufferHeight = Section.Height;
-                    Bitmap = BitmapFactory.New(FramebufferWidth, FramebufferHeight);
-                }
-                else
-                {
-                    FramebufferWidth = framebufferWidth;
-                    FramebufferHeight = framebufferHeight;
-                    Bitmap = BitmapFactory.New(framebufferWidth, framebufferHeight);
-                }
-                image.Source = Bitmap;
-            }));
+                return Section.X;
+            }
+            return 0;
         }
 
-        private void Client_OnVncUpdate(IEnumerable<(RfbRectangleHeader header, byte[] data)> rectangles)
+        private int BitmapY()
+        {
+            if (Section != null)
+            {
+                return Section.Y;
+            }
+            return 0;
+        }
+
+        public async Task Stop()
+        {
+            if (Connection != null)
+            {
+                Connection.Stop();
+            }
+
+            if (PreEstablishedConnection != null)
+            {
+                await PreEstablishedConnection.Detach(this);
+            }
+        }
+
+        public void HandleFramebufferUpdate(IEnumerable<(RfbRectangleHeader, byte[])> rectangles)
         {
             Application.Current?.Dispatcher.Invoke(new Action(() =>
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
                 if (Bitmap == null)
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException("Bitmap is null");
                 using (var ctx = Bitmap.GetBitmapContext())
                 {
                     Bitmap.Lock();
@@ -168,51 +175,35 @@ namespace VncDotnet.WPF
                                         rowLength * 4);
                                 }
                             }
-                            ArrayPool<byte>.Shared.Return(data);
                         }
                     }
 
-                    Bitmap.DrawRectangle(0, 0, 64, 64, Colors.GreenYellow);
                     Bitmap.AddDirtyRect(new Int32Rect(0, 0, Bitmap.PixelWidth, Bitmap.PixelHeight));
                     Bitmap.Unlock();
                 }
                 stopwatch.Stop();
-                //Debug.WriteLine($"Client_OnVncUpdate invocation took {stopwatch.Elapsed}");
             }));
         }
 
-        private int BitmapX()
+        public void HandleResolutionUpdate(int framebufferWidth, int framebufferHeight)
         {
-            if (Section != null)
+            Application.Current?.Dispatcher.Invoke(new Action(() =>
             {
-                return Section.X;
-            }
-            return 0;
-        }
-
-        private int BitmapY()
-        {
-            if (Section != null)
-            {
-                return Section.Y;
-            }
-            return 0;
-        }
-
-        public void Stop()
-        {
-            if (Connection != null)
-            {
-                Connection.OnResolutionUpdate -= Client_OnResolutionUpdate;
-                Connection.OnVncUpdate -= Client_OnVncUpdate;
-                Connection.Stop();
-            }
-
-            if (PreEstablishedConnection != null)
-            {
-                PreEstablishedConnection.OnResolutionUpdate -= Client_OnResolutionUpdate;
-                PreEstablishedConnection.OnVncUpdate -= Client_OnVncUpdate;
-            }
+                var image = (Image)GetTemplateChild("Scene");
+                if (Section != null)
+                {
+                    FramebufferWidth = Section.Width;
+                    FramebufferHeight = Section.Height;
+                    Bitmap = BitmapFactory.New(FramebufferWidth, FramebufferHeight);
+                }
+                else
+                {
+                    FramebufferWidth = framebufferWidth;
+                    FramebufferHeight = framebufferHeight;
+                    Bitmap = BitmapFactory.New(framebufferWidth, framebufferHeight);
+                }
+                image.Source = Bitmap;
+            }));
         }
     }
 }
